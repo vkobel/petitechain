@@ -11,7 +11,7 @@ namespace petitechain.Core {
 
         public uint Index { get; set; }
         public DateTime Timestamp { get; set; }
-        public byte[] ParentHash { get; set; }
+        public Block ParentBlock { get; set; }
         public BigInteger Nonce { get; set; }
         public ulong Difficulty { get; set; }
         public List<Transaction> Transactions { get; set; }
@@ -26,9 +26,9 @@ namespace petitechain.Core {
             }
         }       
 
-        public Block(uint index, byte[] parentHash, BigInteger nonce, ulong difficulty) {
+        public Block(uint index, Block parentBlock, BigInteger nonce, ulong difficulty) {
             Index = index;
-            ParentHash = parentHash;
+            ParentBlock = parentBlock;
             Nonce = nonce;
             Difficulty = difficulty;
             Timestamp = DateTime.UtcNow;
@@ -39,7 +39,7 @@ namespace petitechain.Core {
             var fieldsCombined = Helpers.Combine(
                 BitConverter.GetBytes(Index), 
                 BitConverter.GetBytes(((DateTimeOffset)Timestamp).ToUnixTimeSeconds()),
-                ParentHash, 
+                ParentBlock != null ? ParentBlock.Hash : new byte[]{ 0x0 }, 
                 Nonce.ToByteArray(), 
                 BitConverter.GetBytes(Difficulty), 
                 BuildTransactionsRoot(Transactions)

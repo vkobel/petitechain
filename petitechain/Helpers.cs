@@ -11,7 +11,7 @@ namespace petitechain {
         }
 
         public static byte[] HexStringToByteArray(this string hexString){
-            var hexClean = hexString.TrimStart('0', 'x');
+            var hexClean = hexString.StartsWith("0x") ? hexString.Substring(2) : hexString;
             if(!Regex.IsMatch(hexClean, @"\A\b[0-9a-fA-F]+\b\Z")){
                 throw new ArgumentException("hexString should contain only hexadecimal characters", "hexString");
             }
