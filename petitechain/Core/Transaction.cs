@@ -2,7 +2,7 @@ using System;
 
 namespace petitechain.Core {
 
-    public class Transaction {
+    public class Transaction : IHashable {
 
         public DateTime Timestamp { get; set; }
         public byte[] From { get; set; }
@@ -13,9 +13,12 @@ namespace petitechain.Core {
         private byte[] _hash;
         public byte[] Hash { 
             get {
-                return new byte[]{ 0x33, 0xad, 0xff, 0x3c, 0x6e };
+                if(_hash == null){
+                    _hash = GetHash();
+                }
+                return _hash;
             }
-        }
+        }  
 
         public Transaction(byte[] from, byte[] to, ulong fee, uint nonce){
             From = from;
@@ -23,6 +26,16 @@ namespace petitechain.Core {
             Fee = fee;
             Nonce = nonce;
             Timestamp = DateTime.UtcNow;            
+        }
+
+        public byte[] GetHash(){
+            var fieldsCombined = Helpers.Combine(
+                BitConverter.GetBytes(((DateTimeOffset)Timestamp).ToUnixTimeSeconds()),
+                From, To, 
+                BitConverter.GetBytes(Nonce),  
+                BitConverter.GetBytes(Fee)
+            );
+            return Config.BlockHashAlgorithm.ComputeHash(fieldsCombined);
         }
     }
 }

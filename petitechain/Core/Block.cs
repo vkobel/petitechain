@@ -7,7 +7,7 @@ using System.Security.Cryptography;
 
 namespace petitechain.Core {
     
-    public class Block : ISerializable {
+    public class Block : IHashable {
 
         public uint Index { get; set; }
         public DateTime Timestamp { get; set; }
@@ -20,13 +20,7 @@ namespace petitechain.Core {
         public byte[] Hash { 
             get {
                 if(_hash == null){
-                    _hash = BuildBlockHash(
-                        BitConverter.GetBytes(Index), 
-                        BitConverter.GetBytes(((DateTimeOffset)Timestamp).ToUnixTimeSeconds()),
-                        ParentHash, 
-                        Nonce.ToByteArray(), 
-                        BitConverter.GetBytes(Difficulty), 
-                        BuildTransactionsRoot(Transactions));
+                    _hash = GetHash();
                 }
                 return _hash;
             }
@@ -41,28 +35,21 @@ namespace petitechain.Core {
             Transactions = new List<Transaction>();
         }
 
-        protected byte[] BuildBlockHash(params byte[][] fields){
-            var fieldsCombined = Combine(fields);
+        public byte[] GetHash(){
+            var fieldsCombined = Helpers.Combine(
+                BitConverter.GetBytes(Index), 
+                BitConverter.GetBytes(((DateTimeOffset)Timestamp).ToUnixTimeSeconds()),
+                ParentHash, 
+                Nonce.ToByteArray(), 
+                BitConverter.GetBytes(Difficulty), 
+                BuildTransactionsRoot(Transactions)
+            );
             return Config.BlockHashAlgorithm.ComputeHash(fieldsCombined);
         }
 
         private byte[] BuildTransactionsRoot(List<Transaction> transactions){
-            var hashs = Combine(transactions.Select(t => t.Hash).ToArray());
+            var hashs = Helpers.Combine(transactions.Select(t => t.Hash).ToArray());
             return Config.BlockHashAlgorithm.ComputeHash(hashs);
-        }
-
-        private byte[] Combine(params byte[][] arrays){
-            byte[] rv = new byte[arrays.Sum(a => a.Length)];
-            int offset = 0;
-            foreach (byte[] array in arrays) {
-                System.Buffer.BlockCopy(array, 0, rv, offset, array.Length);
-                offset += array.Length;
-            }
-            return rv;
-        }
-
-        void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context){
-            throw new NotImplementedException();
         }
     }
 }
