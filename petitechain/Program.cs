@@ -9,10 +9,10 @@ namespace petitechain {
     class Program {
 
         public static IEnumerable<object[]> CreateFakeBlockChain(){
-            var genesis = new Block(1, null, 0, 0);
+            var genesis = new Block(null, 0, 0);
             Block latestBlock = genesis;
             for(uint i = 1; i <= 64; i++){
-                var newBlock = new Block(i, latestBlock, 0, 0);
+                var newBlock = new Block(latestBlock, 0, 0);
                 latestBlock = newBlock;
                 yield return new []{ newBlock };
             }

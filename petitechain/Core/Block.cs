@@ -26,8 +26,8 @@ namespace petitechain.Core {
             }
         }       
 
-        public Block(uint index, Block parentBlock, BigInteger nonce, ulong difficulty) {
-            Index = index;
+        public Block(Block parentBlock, BigInteger nonce, ulong difficulty) {
+            Index = parentBlock != null ? parentBlock.Index + 1 : 1;
             ParentBlock = parentBlock;
             Nonce = nonce;
             Difficulty = difficulty;
