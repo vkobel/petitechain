@@ -27,13 +27,8 @@ namespace petitechain.Core {
             Nonce = nonce;           
         }
 
-        public byte[] GetHash(){
-            var fieldsCombined = Helpers.Combine(
-                From, To, 
-                BitConverter.GetBytes(Nonce),  
-                BitConverter.GetBytes(Fee)
-            );
-            return Config.BlockHashAlgorithm.ComputeHash(fieldsCombined);
-        }
+        public byte[] GetHash() => Config.BlockHashAlgorithm.ComputeHash(
+            Helpers.Combine(From, To, Nonce, Fee)
+        );
     }
 }

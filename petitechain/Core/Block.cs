@@ -10,14 +10,16 @@ namespace petitechain.Core {
     public class Block : IHashable {
 
         public uint Index { get; set; }
-        public DateTime Timestamp { get; set; }
         public Block ParentBlock { get; set; }
         public BigInteger Nonce { get; set; }
         public ulong Difficulty { get; set; }
-        public List<Transaction> Transactions { get; set; }
+        public List<Transaction> Transactions { get; } = new List<Transaction>();
+
+        protected DateTime _datetime { get; set; } = DateTime.UtcNow;
+        public ulong Timestamp { get => (ulong)((DateTimeOffset)_datetime).ToUnixTimeSeconds(); }
 
         private byte[] _hash;
-        public byte[] Hash { 
+        public byte[] Hash {
             get {
                 if(_hash == null){
                     _hash = GetHash();
@@ -27,25 +29,21 @@ namespace petitechain.Core {
         }       
 
         public Block(Block parentBlock, BigInteger nonce, ulong difficulty) {
-            Index = parentBlock != null ? parentBlock.Index + 1 : 1;
+            Index = parentBlock?.Index + 1 ?? 1;
             ParentBlock = parentBlock;
             Nonce = nonce;
             Difficulty = difficulty;
-            Timestamp = DateTime.UtcNow;
-            Transactions = new List<Transaction>();
         }
 
-        public byte[] GetHash(){
-            var fieldsCombined = Helpers.Combine(
-                BitConverter.GetBytes(Index), 
-                BitConverter.GetBytes(((DateTimeOffset)Timestamp).ToUnixTimeSeconds()),
-                ParentBlock != null ? ParentBlock.Hash : new byte[]{ 0x0 }, 
-                Nonce.ToByteArray(), 
-                BitConverter.GetBytes(Difficulty), 
+        public byte[] GetHash() => Config.BlockHashAlgorithm.ComputeHash(
+            Helpers.Combine(
+                Index, 
+                ParentBlock?.Hash, 
+                Nonce, Difficulty, 
+                Timestamp,
                 BuildTransactionsRoot(Transactions)
-            );
-            return Config.BlockHashAlgorithm.ComputeHash(fieldsCombined);
-        }
+            )
+        );
 
         private byte[] BuildTransactionsRoot(List<Transaction> transactions){
             var hashs = Helpers.Combine(transactions.Select(t => t.Hash).ToArray());

@@ -27,8 +27,8 @@ namespace petitechain {
             foreach(var b in bc){
                 var bb = b.SingleOrDefault() as Block;
                 Console.WriteLine(bb.Index);
-                Console.WriteLine("   0x{0}", bb.Hash.ToHexString());
-                Console.WriteLine("   0x{0}", bb.Hash.ToHexString().HexStringToByteArray().ToHexString());
+                Console.WriteLine($"   0x{bb.Hash.ToHexString()}");
+                Console.WriteLine($"   0x{bb.Hash.ToHexString().HexStringToByteArray().ToHexString()}");
             }
 
         }

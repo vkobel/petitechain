@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text.RegularExpressions;
 
 namespace petitechain {
@@ -22,7 +24,7 @@ namespace petitechain {
                 .ToArray();
         }
 
-        public static byte[] Combine(params byte[][] arrays){
+        public static byte[] CombineBytes(params byte[][] arrays){
             byte[] rv = new byte[arrays.Sum(a => a.Length)];
             int offset = 0;
             foreach (byte[] array in arrays) {
@@ -30,6 +32,36 @@ namespace petitechain {
                 offset += array.Length;
             }
             return rv;
+        }
+
+        // Support converting multiple standard types out of the box
+        public static byte[] Combine(params object[] any){
+            
+            return CombineBytes(convertParams().ToArray());
+
+            IEnumerable<byte[]> convertParams(){
+                foreach(var p in any){
+                    switch(p){
+                        case uint intP:
+                            yield return BitConverter.GetBytes(intP);
+                        break;
+                        case ulong longP:
+                            yield return BitConverter.GetBytes(longP);
+                        break;
+                        case byte[] bytesP:
+                            yield return bytesP;
+                        break;
+                        case BigInteger bigP:
+                            yield return bigP.ToByteArray();
+                        break;
+                        case null:
+                            yield return new byte[]{ 0x0 };
+                        break;
+                        default:
+                            throw new FormatException($"The provided parameter of type {p.GetType()} is not supported by the convenience method Combine(object[])");
+                    }
+                }
+            }
         }
 
     }
